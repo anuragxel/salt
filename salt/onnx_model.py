@@ -1,7 +1,7 @@
 import numpy as np
 import onnxruntime
 
-from utils import apply_coords
+from salt.utils import apply_coords
 
 
 class OnnxModel:

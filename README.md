@@ -35,8 +35,8 @@ If you have found a bug or have an idea for an improvement or new feature, pleas
 
 When creating an issue, please include as much detail as possible, including steps to reproduce the issue if applicable.
 
-Create a pull request (PR) to the original repository. Please use black formatter when making code changes.
+Create a pull request (PR) to the original repository. Please use `black` formatter when making code changes.
 
 ## License
 
-MIT License. See LICENSE for more information.
+The code is licensed under the MIT License. By contributing to SALT, you agree to license your contributions under the same license as the project. Please see the LICENSE file for more information. See LICENSE for more information.

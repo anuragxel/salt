@@ -4,7 +4,7 @@ import cv2
 from onnx_model import OnnxModel
 from dataset_explorer import DatasetExplorer
 
-from display_utils import overlay_mask_on_image, draw_points, draw_annotations
+from display_utils import DisplayUtils
 
 class CurrentCapturedInputs:
     def __init__(self):
@@ -57,6 +57,7 @@ class Editor:
             self.image_embedding,
         ) = self.dataset_explorer.get_image_data(self.image_id)
         self.display = self.image_bgr.copy()
+        self.du = DisplayUtils()
         self.reset()
 
     def add_click(self, new_pt, new_label):
@@ -68,10 +69,10 @@ class Editor:
             self.curr_inputs.input_label,
             low_res_logits=self.curr_inputs.low_res_logits,
         )
-        self.display = draw_points(
+        self.display = self.du.draw_points(
             self.display, self.curr_inputs.input_point, self.curr_inputs.input_label
         )
-        self.display = overlay_mask_on_image(self.display, masks[0, 0, :, :])
+        self.display = self.du.overlay_mask_on_image(self.display, masks[0, 0, :, :])
         self.curr_inputs.set_mask(masks[0, 0, :, :])
         self.curr_inputs.set_low_res_logits(low_res_logits)
 
@@ -79,7 +80,7 @@ class Editor:
         anns, colors = self.dataset_explorer.get_annotations(
             self.image_id, return_colors=True
         )
-        self.display = draw_annotations(self.display, anns, colors)
+        self.display = self.du.draw_annotations(self.display, anns, colors)
 
     def reset(self):
         self.curr_inputs.reset_inputs()

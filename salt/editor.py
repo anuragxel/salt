@@ -141,5 +141,8 @@ class Editor:
             return
         self.category_id -= 1
     
+    def get_categories(self):
+        return self.categories
+
     def select_category(self, category_id):
         self.category_id = category_id

@@ -12,11 +12,16 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 
 ## Usage
 
-1. Setup your dataset in the following format `<dataset_name>/images/*`
-2. Call `extract_embeddings.py` provided in `helpers/` to extract embeddings for your images.
-3. Call `generate_onnx.py` provided in `helpers/` to generate `*.onnx` files in models.
-4. Copy the models in `models` folder. Symlink your dataset in the root folder as `<dataset_name>`
-5. Call `segment_anything_annotator.py` with argument `<dataset_name>` and categories `cat1,cat2,cat3..`. 
+1. Setup your dataset in the following format `<dataset_name>/images/*` and create empty folder `<dataset_name>/embeddings`.
+    -- Annotations will be saved in `<dataset_name>/annotations.json` by default.
+2. Copy the `helpers` scripts to the base folder of your `segment-anything` folder.
+    -- Call `extract_embeddings.py` to extract embeddings for your images.
+    -- Call `generate_onnx.py` generate `*.onnx` files in models.
+4. Copy the models in `models` folder. 
+5. Symlink your dataset in the SALT's root folder as `<dataset_name>`.
+6. Call `segment_anything_annotator.py` with argument `<dataset_name>` and categories `cat1,cat2,cat3..`. 
+7. [coco-viewer](https://github.com/trsvchn/coco-viewer) to view your annotations.
+    -- `python cocoviewer.py -i <dataset> -a <dataset>/annotations.json`
 
 ## Demo
 
@@ -24,15 +29,13 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 
 ## Contributing
 
-We welcome contributions to SALT! Please follow these guidelines to ensure that your contributions can be reviewed and merged.
+Follow these guidelines to ensure that your contributions can be reviewed and merged. Need a lot of help in making the UI better.
 
-If you have found a bug or have an idea for an improvement or new feature, please create an issue on GitHub. Before creating a new issue, please search existing issues to see if your issue has already been reported.
+If you have found a bug or have an idea for an improvement or new feature, please create an issue on GitHub. Before creating a new issue, please search existing issues to see if your issue has already been reported. 
 
 When creating an issue, please include as much detail as possible, including steps to reproduce the issue if applicable.
 
-Create a pull request (PR) to the original repository. Please use black linter when making code changes.
-
-
+Create a pull request (PR) to the original repository. Please use black formatter when making code changes.
 
 ## License
 

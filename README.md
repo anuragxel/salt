@@ -19,7 +19,7 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 
 ## Demo
 
-![Alt Text](https://github.com/anuragxel/salt/blob/master/assets/how-it-works.gif)
+![How it Works Gif!](https://github.com/anuragxel/salt/raw/main/assets/how-it-works.gif)
 
 ## Contributing
 

@@ -41,9 +41,9 @@ class Editor:
         if categories is None and not os.path.exists(coco_json_path):
             raise ValueError("categories must be provided if coco_json_path is None")
         if self.coco_json_path is None:
-            self.coco_json_path = os.path.join(self.dataset_folder, "annotations.json")
+            self.coco_json_path = os.path.join(self.dataset_path, "annotations.json")
         self.dataset_explorer = DatasetExplorer(
-            "dataset", categories=categories, coco_json_path=self.coco_json_path
+            self.dataset_path, categories=categories, coco_json_path=self.coco_json_path
         )
         self.curr_inputs = CurrentCapturedInputs()
         self.categories = self.dataset_explorer.get_categories()

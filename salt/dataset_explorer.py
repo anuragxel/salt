@@ -99,7 +99,7 @@ def parse_mask_to_coco(image_id, anno_id, image_mask, category_id, poly=False):
 class DatasetExplorer:
     def __init__(self, dataset_folder, categories=None, coco_json_path=None):
         self.dataset_folder = dataset_folder
-        self.image_names = os.listdir(os.path.join(dataset_folder, "images"))
+        self.image_names = os.listdir(os.path.join(self.dataset_folder, "images"))
         self.image_names = [
             os.path.split(name)[1] for name in self.image_names if name.endswith(".jpg")
         ]

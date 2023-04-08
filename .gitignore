@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Models
+.onnx
+
+# Dataset
+dataset/

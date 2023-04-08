@@ -5,12 +5,13 @@ from pycocotools import mask as coco_mask
 class DisplayUtils:
     def __init__(self):
         self.transparency = 0.65
+        self.box_width = 1
 
     def increase_transparency(self):
-        self.transparency = min(1.0, self.transparency + 0.1)
+        self.transparency = min(1.0, self.transparency + 0.05)
     
     def decrease_transparency(self):
-        self.transparency = max(0.0, self.transparency - 0.1)
+        self.transparency = max(0.0, self.transparency - 0.05)
 
     def overlay_mask_on_image(self, image, mask, color=(0, 0, 255)):
         gray_mask = mask.astype(np.uint8) * 255
@@ -24,7 +25,7 @@ class DisplayUtils:
         image = cv2.add(background, overlay_on_masked_image)
         return image
 
-    def convert_ann_to_mask(self, ann, height, width):
+    def __convert_ann_to_mask(self, ann, height, width):
         mask = np.zeros((height, width), dtype=np.uint8)
         poly = ann["segmentation"]
         rles = coco_mask.frPyObjects(poly, height, width)
@@ -38,18 +39,18 @@ class DisplayUtils:
     def draw_box_on_image(self, image, ann, color):
         x, y, w, h = ann["bbox"]
         x, y, w, h = int(x), int(y), int(w), int(h)
-        image = cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
+        image = cv2.rectangle(image, (x, y), (x + w, y + h), color, self.box_width)
         return image
 
     def draw_annotations(self, image, annotations, colors):
         for ann, color in zip(annotations, colors):
             image = self.draw_box_on_image(image, ann, color)
-            mask = self.convert_ann_to_mask(ann, image.shape[0], image.shape[1])
+            mask = self.__convert_ann_to_mask(ann, image.shape[0], image.shape[1])
             image = self.overlay_mask_on_image(image, mask, color)
         return image
 
     def draw_points(
-        self, image, points, labels, colors={1: (0, 255, 0), 0: (255, 0, 0)}, radius=5
+        self, image, points, labels, colors={1: (0, 255, 0), 0: (0, 0, 255)}, radius=5
     ):
         for i in range(points.shape[0]):
             point = points[i, :]

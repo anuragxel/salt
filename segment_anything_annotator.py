@@ -17,7 +17,7 @@ if __name__ == "__main__":
     print("Barebones annotation interface for segment_anything model")
     print("Press 'r' to reset current mask annotation")
     print("Press 't' to toggle visibility of previously made annotations")
-    print("Press 'n' to save and next image")
+    print("Press 'n' to save and start new mask annotation")
     print("Press 'd' to goto next image")
     print("Press 'a' to goto prev image")
     print("Press 'w' to annotate next category")

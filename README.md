@@ -17,8 +17,9 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 4. Copy the models in `models` folder. Symlink your dataset in the root folder as `<dataset_name>`
 4. Call `cocoeditor.py` with argument `<dataset_name>` and categories as `cat1,cat2,cat3..`. 
 
-## Examples
+## Demo
 
+![Alt Text](https://github.com/anuragxel/salt/blob/master/assets/how-it-works.gif)
 
 ## Contributing
 

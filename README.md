@@ -7,7 +7,7 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 ## Installation
 
 1. Install [Segment Anything](https://github.com/facebookresearch/segment-anything) on any machine with a GPU. (Need not be the labelling machine.)
-2. Create a conda environment using `conda conda env create environment.yaml` on you labelling machine (Need not have GPU).
+2. Create a conda environment using `conda conda env create environment.yaml` on the labelling machine (Need not have GPU).
 3. (Optional) Install [coco-viewer](https://github.com/trsvchn/coco-viewer) to scroll through your annotations quickly.
 
 ## Usage

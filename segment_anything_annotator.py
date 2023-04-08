@@ -5,7 +5,7 @@ import cv2
 
 from salt.editor import Editor
 
-# @TODO: Add Tktinter GUI    
+# @TODO: Add Tkinter GUI    
 class AnnotationInterface:
     def __init__(self, editor):
         self.editor = editor

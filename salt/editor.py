@@ -96,7 +96,7 @@ class Editor:
         self.reset()
 
     def step_down_transparency(self):
-        self.du.increase_transparency()
+        self.du.decrease_transparency()
         self.reset()
 
     def save_ann(self):

@@ -1,11 +1,20 @@
 # Segment Anything Labelling Tool (SALT)
 
-Insert brief description of your labelling tool here, including what it does and how it works.
+Uses the Segment Anything Tool By Meta AI and builds a super barebones interface to label images using the tool.
+
+Under active development, so kindly apologize for rough edged and any bugs. Use at your own risk.
 
 ## Installation
 
+1. Install [Segment Anything](https://github.com/facebookresearch/segment-anything) on any machine with a GPU.
+
+
 ## Usage
 
+1. Setup your dataset in the following format `<dataset_name>/images/*`
+2. Call `extract_embeddings.py` provided in `helpers/` to extract embeddings for your images.
+3. Call `generate_onnx.py` provided in `helpers/` to generate `*.onnx` files in models.
+4. Call `cocoeditor.py` with argument `<dataset_name>`. 
 
 ## Examples
 
@@ -23,4 +32,4 @@ Create a pull request (PR) to the original repository. Please use black linter w
 
 ## License
 
-Insert information about the license that your labelling tool is released under here.
+MIT License. See LICENSE for more information.

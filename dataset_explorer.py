@@ -109,6 +109,7 @@ class DatasetExplorer:
         with open(coco_json_path, "r") as f:
             self.coco_json = json.load(f)
 
+        self.categories = [category["name"] for category in self.coco_json["categories"]]
         self.annotations_by_image_id = {}
         for annotation in self.coco_json["annotations"]:
             image_id = annotation["image_id"]
@@ -117,7 +118,7 @@ class DatasetExplorer:
             self.annotations_by_image_id[image_id].append(annotation)
 
         self.global_annotation_id = len(self.coco_json["annotations"])
-        self.category_colors = distinctipy.get_colors(len(self.coco_json["categories"]))
+        self.category_colors = distinctipy.get_colors(len(self.categories))
         self.category_colors = [
             tuple([int(255 * c) for c in color]) for color in self.category_colors
         ]
@@ -132,6 +133,9 @@ class DatasetExplorer:
 
     def get_colors(self, category_id):
         return self.category_colors[category_id]
+    
+    def get_categories(self):
+        return self.categories
 
     def get_num_images(self):
         return len(self.image_names)

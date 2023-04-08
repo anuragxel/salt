@@ -1,10 +1,10 @@
 import os, copy
 import numpy as np
 import cv2
-from utils import overlay_mask_on_image, draw_points, draw_annotations
 from onnx_model import OnnxModel
 from dataset_explorer import DatasetExplorer
 
+from display_utils import overlay_mask_on_image, draw_points, draw_annotations
 
 class CurrentCapturedInputs:
     def __init__(self):
@@ -34,10 +34,9 @@ class CurrentCapturedInputs:
 
 
 class Editor:
-    def __init__(self, onnx_model_path, dataset_path, categories, coco_json_path):
+    def __init__(self, onnx_model_path, dataset_path, categories=None, coco_json_path=None):
         self.dataset_path = dataset_path
         self.coco_json_path = coco_json_path
-        self.categories = categories
         self.onnx_model_path = onnx_model_path
         self.onnx_helper = OnnxModel(self.onnx_model_path)
         if categories is None and not os.path.exists(coco_json_path):
@@ -45,9 +44,10 @@ class Editor:
         if self.coco_json_path is None:
             self.coco_json_path = os.path.join(self.dataset_folder, "annotations.json")
         self.dataset_explorer = DatasetExplorer(
-            "dataset", categories=self.categories, coco_json_path=self.coco_json_path
+            "dataset", categories=categories, coco_json_path=self.coco_json_path
         )
         self.curr_inputs = CurrentCapturedInputs()
+        self.categories = self.dataset_explorer.get_categories()
         self.image_id = 0
         self.category_id = 0
         self.show_other_anns = True
@@ -132,6 +132,10 @@ class Editor:
         if self.category_id == 0:
             return
         self.category_id -= 1
+    
+    def select_category(self, category_id):
+        self.category_id = category_id
+    
 
 
 if __name__ == "__main__":

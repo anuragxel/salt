@@ -7,9 +7,6 @@ from typing import Tuple
 from pycocotools import mask as coco_mask
 
 def overlay_mask_on_image(image, mask, color=(0, 0, 255), opacity=0.4):
-    """
-    Overlay mask on image.
-    """
     gray_mask = mask.astype(np.uint8) * 255
     gray_mask = cv2.merge([gray_mask, gray_mask, gray_mask])
     color_mask = cv2.bitwise_and(gray_mask, color)
@@ -23,25 +20,18 @@ def overlay_mask_on_image(image, mask, color=(0, 0, 255), opacity=0.4):
 
 
 def convert_ann_to_mask(ann, height, width):
-    """
-    Convert annotation to mask.
-    """
     mask = np.zeros((height, width), dtype=np.uint8)
-    for seg in ann["segmentation"]:
-        poly = ann["segmentation"]
-        rles = coco_mask.frPyObjects(poly, height, width)
-        rle = coco_mask.merge(rles)
-        mask_instance = coco_mask.decode(rle)
-        mask_instance = np.logical_not(mask_instance)
-        mask = np.logical_or(mask, mask_instance)
+    poly = ann["segmentation"]
+    rles = coco_mask.frPyObjects(poly, height, width)
+    rle = coco_mask.merge(rles)
+    mask_instance = coco_mask.decode(rle)
+    mask_instance = np.logical_not(mask_instance)
+    mask = np.logical_or(mask, mask_instance)
     mask = np.logical_not(mask)
     return mask
 
 
 def draw_box_on_image(image, ann, color):
-    """
-    Draw box on image.
-    """
     x, y, w, h = ann["bbox"]
     x, y, w, h = int(x), int(y), int(w), int(h)
     image = cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
@@ -49,9 +39,6 @@ def draw_box_on_image(image, ann, color):
 
 
 def draw_annotations(image, annotations, colors):
-    """
-    Draw annotations on image.
-    """
     for ann, color in zip(annotations, colors):
         image = draw_box_on_image(image, ann, color)
         mask = convert_ann_to_mask(ann, image.shape[0], image.shape[1])
@@ -62,9 +49,6 @@ def draw_annotations(image, annotations, colors):
 def draw_points(
     image, points, labels, colors={1: (0, 255, 0), 0: (255, 0, 0)}, radius=5
 ):
-    """
-    Draw points on image.
-    """
     for i in range(points.shape[0]):
         point = points[i, :]
         label = labels[i]

@@ -136,7 +136,13 @@ class Editor:
     def select_category(self, category_id):
         self.category_id = category_id
     
-
+class AnnotationInterface:
+    def __init__(self, editor):
+        self.editor = editor
+    
+    def run(self):
+        pass
+        
 
 if __name__ == "__main__":
     editor = Editor(

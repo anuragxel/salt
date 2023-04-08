@@ -1,6 +1,6 @@
 # Segment Anything Labelling Tool (SALT)
 
-Uses the Segment-Anything Model By Meta AI and adds a barebones interface to label images.
+Uses the Segment-Anything Model By Meta AI and adds a barebones interface to label images and saves the masks in the COCO format.
 
 Under active development, apologies for rough edges and bugs. Use at your own risk.
 
@@ -8,6 +8,7 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 
 1. Install [Segment Anything](https://github.com/facebookresearch/segment-anything) on any machine with a GPU. (Need not be the labelling machine.)
 2. Create a conda environment using `conda conda env create environment.yaml`
+3. Also install [coco-viewer](https://github.com/trsvchn/coco-viewer) to view your annotations quickly.
 
 ## Usage
 
@@ -15,7 +16,7 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 2. Call `extract_embeddings.py` provided in `helpers/` to extract embeddings for your images.
 3. Call `generate_onnx.py` provided in `helpers/` to generate `*.onnx` files in models.
 4. Copy the models in `models` folder. Symlink your dataset in the root folder as `<dataset_name>`
-4. Call `cocoeditor.py` with argument `<dataset_name>` and categories as `cat1,cat2,cat3..`. 
+5. Call `segment_anything_annotator.py` with argument `<dataset_name>` and categories `cat1,cat2,cat3..`. 
 
 ## Demo
 

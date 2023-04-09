@@ -26,7 +26,7 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
     - `r` rejects the predicted mask. (Reject button)
     - `a` and `d` to cycle through images in your your set. (Next and Prev)
     - `l` and `k` to increase and decrease the transparency of the other annotations.
-    - `Ctrl + S` to save progress to the COCO-style JSON file.
+    - `Ctrl + S` to save progress to the COCO-style annotations file.
 7. [coco-viewer](https://github.com/trsvchn/coco-viewer) to view your annotations.
     - `python cocoviewer.py -i <dataset> -a <dataset>/annotations.json`
 

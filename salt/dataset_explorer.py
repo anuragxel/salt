@@ -170,6 +170,8 @@ class DatasetExplorer:
         return self.annotations_by_image_id[image_id]
 
     def add_annotation(self, image_id, category_id, mask, poly=True):
+        if mask is None:
+            return
         annotation = parse_mask_to_coco(
             image_id, self.global_annotation_id, mask, category_id, poly=poly
         )

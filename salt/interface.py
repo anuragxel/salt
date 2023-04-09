@@ -151,10 +151,11 @@ class ApplicationInterface(QWidget):
         panel = QWidget()
         panel_layout = QVBoxLayout(panel)
         categories = self.editor.get_categories()
-        for category in categories:
-            label = QPushButton(category)
-            label.clicked.connect(lambda: self.editor.select_category(category))
-            panel_layout.addWidget(label)
+        label_array = []
+        for i, category in enumerate(categories):
+            label_array.append(QPushButton(categories[i]))
+            label_array[i].clicked.connect(lambda state, x=categories[i]: self.editor.select_category(x))
+            panel_layout.addWidget(label_array[i])
         return panel
 
     def keyPressEvent(self, event):

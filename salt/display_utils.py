@@ -25,7 +25,12 @@ class DisplayUtils:
         image = cv2.add(background, overlay_on_masked_image)
         return image
 
-    def __convert_ann_to_mask(self, ann, height, width):
+    def overlay_mask_on_mask(self, image, mask, color=255):
+        mask = mask * color
+        image = (image + mask).astype('int')
+        return image
+
+    def convert_ann_to_mask(self, ann, height, width):
         mask = np.zeros((height, width), dtype=np.uint8)
         poly = ann["segmentation"]
         rles = coco_mask.frPyObjects(poly, height, width)
@@ -45,7 +50,7 @@ class DisplayUtils:
     def draw_annotations(self, image, annotations, colors):
         for ann, color in zip(annotations, colors):
             image = self.draw_box_on_image(image, ann, color)
-            mask = self.__convert_ann_to_mask(ann, image.shape[0], image.shape[1])
+            mask = self.convert_ann_to_mask(ann, image.shape[0], image.shape[1])
             image = self.overlay_mask_on_image(image, mask, color)
         return image
 

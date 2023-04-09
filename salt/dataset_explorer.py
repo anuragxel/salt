@@ -140,9 +140,13 @@ class DatasetExplorer:
     def get_num_images(self):
         return len(self.image_names)
 
-    def get_image_data(self, image_id):
+    def get_image_data(self, image_id, for_seg_labelling=False):
         image_name = self.coco_json["images"][image_id]["file_name"]
         image_path = os.path.join(self.dataset_folder, image_name)
+
+        if for_seg_labelling :
+            return image_path
+
         embedding_path = os.path.join(
             self.dataset_folder,
             "embeddings",
@@ -160,11 +164,13 @@ class DatasetExplorer:
             self.annotations_by_image_id[image_id] = []
         self.annotations_by_image_id[image_id].append(annotation)
 
-    def get_annotations(self, image_id, return_colors=False):
+    def get_annotations(self, image_id, return_colors=False, return_labels=False):
         if image_id not in self.annotations_by_image_id:
             return [], []
         cats = [a["category_id"] for a in self.annotations_by_image_id[image_id]]
         colors = [self.category_colors[c] for c in cats]
+        if return_labels :
+            return self.annotations_by_image_id[image_id], cats
         if return_colors:
             return self.annotations_by_image_id[image_id], colors
         return self.annotations_by_image_id[image_id]

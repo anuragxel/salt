@@ -1,5 +1,6 @@
 import os, copy
 import numpy as np
+import cv2 
 
 from salt.onnx_model import OnnxModel
 from salt.dataset_explorer import DatasetExplorer
@@ -33,11 +34,12 @@ class CurrentCapturedInputs:
 
 
 class Editor:
-    def __init__(self, onnx_model_path, dataset_path, categories=None, coco_json_path=None):
+    def __init__(self, onnx_model_path, dataset_path, categories=None, coco_json_path=None, save_segmaps=False):
         self.dataset_path = dataset_path
         self.coco_json_path = coco_json_path
         self.onnx_model_path = onnx_model_path
         self.onnx_helper = OnnxModel(self.onnx_model_path)
+        self.save_segmaps = save_segmaps
         if categories is None and not os.path.exists(coco_json_path):
             raise ValueError("categories must be provided if coco_json_path is None")
         if self.coco_json_path is None:
@@ -69,7 +71,7 @@ class Editor:
             low_res_logits=self.curr_inputs.low_res_logits,
         )
         self.display = self.du.draw_points(
-            self.display, self.curr_inputs.input_point, self.curr_inputs.input_label
+            self.image_bgr, self.curr_inputs.input_point, self.curr_inputs.input_label
         )
         self.display = self.du.overlay_mask_on_image(self.display, masks[0, 0, :, :])
         self.curr_inputs.set_mask(masks[0, 0, :, :])
@@ -80,6 +82,16 @@ class Editor:
             self.image_id, return_colors=True
         )
         self.display = self.du.draw_annotations(self.display, anns, colors)
+
+    def draw_known_annotations_labels(self, label_canvas):
+        anns, labels = self.dataset_explorer.get_annotations(
+            self.image_id, return_labels=True
+        )
+        for ann, color in zip(anns, labels):
+            mask = self.du.convert_ann_to_mask(ann, label_canvas.shape[0], label_canvas.shape[1])
+            label_canvas = self.du.overlay_mask_on_mask(label_canvas, mask, color+1)
+        
+        return label_canvas
 
     def reset(self, hard=True):
         self.curr_inputs.reset_inputs()
@@ -108,6 +120,14 @@ class Editor:
         self.dataset_explorer.save_annotation()
 
     def next_image(self):
+        if self.save_segmaps :
+            label_canvas = (np.ones([self.image_bgr.shape[0],self.image_bgr.shape[1]]) * 0)
+            label_canvas = self.draw_known_annotations_labels(label_canvas)
+            image_path = self.dataset_explorer.get_image_data(self.image_id,for_seg_labelling=True)
+            segmap_label_path = image_path.replace('images/', 'segmentation/')
+            segmap_label_path = segmap_label_path.replace('.jpg', '.png') # this is an important step as jpeg compression can cause issues
+            cv2.imwrite(segmap_label_path,label_canvas.astype('int'))
+
         if self.image_id == self.dataset_explorer.get_num_images() - 1:
             return
         self.image_id += 1
@@ -144,5 +164,5 @@ class Editor:
     def get_categories(self):
         return self.categories
 
-    def select_category(self, category_id):
-        self.category_id = category_id
+    def select_category(self, category_name):
+        self.category_id = self.categories.index(category_name)

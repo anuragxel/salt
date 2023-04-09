@@ -68,9 +68,10 @@ class CustomGraphicsView(QGraphicsView):
         self.imshow(self.editor.display)
     
 class ApplicationInterface(QWidget):
-    def __init__(self, editor, panel_size=(1920, 1080)):
+    def __init__(self, app, editor, panel_size=(1920, 1080)):
         super(ApplicationInterface, self).__init__()
 
+        self.app = app
         self.editor = editor
         self.panel_size = panel_size
 
@@ -115,11 +116,11 @@ class ApplicationInterface(QWidget):
         self.graphics_view.imshow(self.editor.display)    
 
     def transparency_up(self):
-        self.editor.transparency_up()
+        self.editor.step_up_transparency()
         self.graphics_view.imshow(self.editor.display)
 
     def transparency_down(self):
-        self.editor.transparency_down()
+        self.editor.step_down_transparency()
         self.graphics_view.imshow(self.editor.display)
     
     def save_all(self):
@@ -132,8 +133,8 @@ class ApplicationInterface(QWidget):
         buttons = [
             ("Add", lambda: self.add()),
             ("Reset", lambda: self.reset()),
-            ("Next Image", lambda: self.next_image()),
-            ("Prev Image", lambda: self.prev_image()),
+            ("Prev", lambda: self.prev_image()),
+            ("Next", lambda: self.next_image()),
             ("Toggle", lambda: self.toggle()),
             ("Transparency Up", lambda: self.transparency_up()),
             ("Transparency Down", lambda: self.transparency_down()),
@@ -155,3 +156,24 @@ class ApplicationInterface(QWidget):
             label.clicked.connect(lambda: self.editor.select_category(category))
             panel_layout.addWidget(label)
         return panel
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.app.quit()
+        if event.key() == Qt.Key_A:
+            self.prev_image()
+        if event.key() == Qt.Key_D:
+            self.next_image()
+        if event.key() == Qt.Key_K:
+            self.transparency_down()
+        if event.key() == Qt.Key_L:
+            self.transparency_up()
+        if event.key() == Qt.Key_N:
+            self.add()
+        if event.key() == Qt.Key_R:
+            self.reset()
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_S:
+            self.save_all()
+        # elif event.key() == Qt.Key_Space:
+        #     # Do something if the space bar is pressed
+        #     pass

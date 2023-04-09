@@ -87,7 +87,7 @@ class Editor:
         if self.show_other_anns:
             self.draw_known_annotations()
 
-    def toggle_anns(self):
+    def toggle(self):
         self.show_other_anns = not self.show_other_anns
         self.reset()
     

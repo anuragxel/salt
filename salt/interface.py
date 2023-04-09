@@ -66,30 +66,6 @@ class CustomGraphicsView(QGraphicsView):
             label = 0        
         self.editor.add_click([int(x), int(y)], label)
         self.imshow(self.editor.display)
-
-def reset(editor, app):
-    editor.reset()
-    app.imshow(editor.display)    
-
-def next_image(editor, app):
-    editor.next_image()
-    app.graphics_view.imshow(editor.display)    
-
-def prev_image(editor, app):
-    editor.prev_image()
-    app.graphics_view.imshow(editor.display)    
-
-def toggle(editor, app):
-    editor.toggle()
-    app.graphics_view.imshow(editor.display)    
-
-def transparency_up(editor, app):
-    editor.transparency_up()
-    app.graphics_view.imshow(editor.display)
-
-def transparency_down(editor, app):
-    editor.transparency_down()
-    app.graphics_view.imshow(editor.display)
     
 class ApplicationInterface(QWidget):
     def __init__(self, editor, panel_size=(1920, 1080)):
@@ -116,29 +92,66 @@ class ApplicationInterface(QWidget):
         self.setLayout(self.layout)
 
         self.graphics_view.imshow(self.editor.display)
+    
+    def reset(self):
+        self.editor.reset()
+        self.graphics_view.imshow(self.editor.display)    
+
+    def add(self):
+        self.editor.save_ann()
+        self.editor.reset()
+        self.graphics_view.imshow(self.editor.display)    
+
+    def next_image(self):
+        self.editor.next_image()
+        self.graphics_view.imshow(self.editor.display)    
+
+    def prev_image(self):
+        self.editor.prev_image()
+        self.graphics_view.imshow(self.editor.display)    
+
+    def toggle(self):
+        self.editor.toggle()
+        self.graphics_view.imshow(self.editor.display)    
+
+    def transparency_up(self):
+        self.editor.transparency_up()
+        self.graphics_view.imshow(self.editor.display)
+
+    def transparency_down(self):
+        self.editor.transparency_down()
+        self.graphics_view.imshow(self.editor.display)
+    
+    def save_all(self):
+        self.editor.save()
 
     def get_top_bar(self):
         top_bar = QWidget()
         button_layout = QHBoxLayout(top_bar)
         self.layout.addLayout(button_layout)
         buttons = [
-            ("Reset", lambda: reset(self.editor, self)),
-            ("Next Image", lambda: next_image(self.editor, self)),
-            ("Prev Image", lambda: prev_image(self.editor, self)),
-            ("Toggle", lambda: toggle(self.editor, self)),
-            ("Transparency Up", lambda: transparency_up(self.editor, self)),
-            ("Transparency Down", lambda: transparency_down(self.editor, self)),
+            ("Add", lambda: self.add()),
+            ("Reset", lambda: self.reset()),
+            ("Next Image", lambda: self.next_image()),
+            ("Prev Image", lambda: self.prev_image()),
+            ("Toggle", lambda: self.toggle()),
+            ("Transparency Up", lambda: self.transparency_up()),
+            ("Transparency Down", lambda: self.transparency_down()),
+            ("Save", lambda: self.save_all()), 
         ]
         for button, lmb in buttons:
             bt = QPushButton(button)
             bt.clicked.connect(lmb)
-            button_layout.addWidget(QPushButton(button))
+            button_layout.addWidget(bt)
 
         return top_bar
 
     def get_side_panel(self):
         panel = QWidget()
         panel_layout = QVBoxLayout(panel)
-        for i in range(10):
-            panel_layout.addWidget(QPushButton(f"{i}"))
+        categories = self.editor.get_categories()
+        for category in categories:
+            label = QPushButton(category)
+            label.clicked.connect(lambda: self.editor.select_category(category))
+            panel_layout.addWidget(label)
         return panel

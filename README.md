@@ -19,7 +19,14 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
     - Call `generate_onnx.py` generate `*.onnx` files in models.
 4. Copy the models in `models` folder. 
 5. Symlink your dataset in the SALT's root folder as `<dataset_name>`.
-6. Call `segment_anything_annotator.py` with argument `<dataset_name>` and categories `cat1,cat2,cat3..`. 
+6. Call `segment_anything_annotator.py` with argument `<dataset_name>` and categories `cat1,cat2,cat3..`.
+    - There are a few keybindings that make the annotation process fast.
+    - Click on the object using left clicks and right click (to indicate outside object boundary).
+    - `n` adds predicted mask into your annotations. (Add button)
+    - `r` rejects the predicted mask. (Reject button)
+    - `a` and `d` to cycle through images in your your set. (Next and Prev)
+    - `l` and `k` to increase and decrease the transparency of the other annotations.
+    - `Ctrl + S` to save progress to the COCO-style annotations file.
 7. [coco-viewer](https://github.com/trsvchn/coco-viewer) to view your annotations.
     - `python cocoviewer.py -i <dataset> -a <dataset>/annotations.json`
 

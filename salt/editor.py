@@ -68,6 +68,8 @@ class Editor:
             self.curr_inputs.input_label,
             low_res_logits=self.curr_inputs.low_res_logits,
         )
+        self.display = self.image_bgr.copy()
+        self.draw_known_annotations()
         self.display = self.du.draw_points(
             self.display, self.curr_inputs.input_point, self.curr_inputs.input_label
         )
@@ -133,16 +135,19 @@ class Editor:
 
     def next_category(self):
         if self.category_id == len(self.categories) - 1:
+            self.category_id = 0
             return
         self.category_id += 1
 
     def prev_category(self):
         if self.category_id == 0:
+            self.category_id = len(self.categories) - 1
             return
         self.category_id -= 1
     
     def get_categories(self):
         return self.categories
 
-    def select_category(self, category_id):
+    def select_category(self, category_name):
+        category_id = self.categories.index(category_name)
         self.category_id = category_id

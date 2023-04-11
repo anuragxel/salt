@@ -2,7 +2,7 @@ import cv2
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QGraphicsView, QGraphicsScene
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QWheelEvent, QMouseEvent
 from PyQt5.QtCore import Qt, QRectF
-from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel
+from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QRadioButton
 
 class CustomGraphicsView(QGraphicsView):
     def __init__(self, editor):
@@ -153,7 +153,7 @@ class ApplicationInterface(QWidget):
         categories, colors = self.editor.get_categories(get_colors=True)
         label_array = []
         for i, _ in enumerate(categories):
-            label_array.append(QPushButton(categories[i]))
+            label_array.append(QRadioButton(categories[i]))
             label_array[i].clicked.connect(lambda state, x=categories[i]: self.editor.select_category(x))
             label_array[i].setStyleSheet("background-color: rgba({},{},{},0.6)".format(*colors[i][::-1]))
             panel_layout.addWidget(label_array[i])

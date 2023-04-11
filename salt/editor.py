@@ -46,7 +46,7 @@ class Editor:
             self.dataset_path, categories=categories, coco_json_path=self.coco_json_path
         )
         self.curr_inputs = CurrentCapturedInputs()
-        self.categories = self.dataset_explorer.get_categories()
+        self.categories, self.category_colors = self.dataset_explorer.get_categories(get_colors=True)
         self.image_id = 0
         self.category_id = 0
         self.show_other_anns = True
@@ -145,7 +145,9 @@ class Editor:
             return
         self.category_id -= 1
     
-    def get_categories(self):
+    def get_categories(self, get_colors = False):
+        if get_colors:
+            return self.categories, self.category_colors
         return self.categories
 
     def select_category(self, category_name):

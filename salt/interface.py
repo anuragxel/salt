@@ -150,11 +150,13 @@ class ApplicationInterface(QWidget):
     def get_side_panel(self):
         panel = QWidget()
         panel_layout = QVBoxLayout(panel)
-        categories = self.editor.get_categories()
-        for category in categories:
-            label = QPushButton(category)
-            label.clicked.connect(lambda: self.editor.select_category(category))
-            panel_layout.addWidget(label)
+        categories, colors = self.editor.get_categories(get_colors=True)
+        label_array = []
+        for i, _ in enumerate(categories):
+            label_array.append(QPushButton(categories[i]))
+            label_array[i].clicked.connect(lambda state, x=categories[i]: self.editor.select_category(x))
+            label_array[i].setStyleSheet("background-color: rgba({},{},{},0.6)".format(*colors[i][::-1]))
+            panel_layout.addWidget(label_array[i])
         return panel
 
     def keyPressEvent(self, event):

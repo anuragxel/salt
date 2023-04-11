@@ -134,7 +134,9 @@ class DatasetExplorer:
     def get_colors(self, category_id):
         return self.category_colors[category_id]
     
-    def get_categories(self):
+    def get_categories(self, get_colors=False):
+        if get_colors:
+            return self.categories, self.category_colors
         return self.categories
 
     def get_num_images(self):

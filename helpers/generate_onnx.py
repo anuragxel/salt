@@ -85,4 +85,5 @@ if __name__ == "__main__":
     orig_im_size = args.orig_im_size
     opset_version = args.opset_version
 
+    # onnx_model_path = os.path.split(onnx_model_path)[0] + f".{orig_im_size[0]}_{orig_im_size[1]}." + os.path.split(onnx_model_path)[1]
     main(checkpoint_path, model_type, onnx_model_path, orig_im_size, opset_version, args.quantize)

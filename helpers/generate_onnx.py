@@ -3,7 +3,9 @@
 # This source code is licensed under the Apache-2.0 license found in the LICENSE file in the root directory of segment_anything repository and source tree.
 # Adapted from onnx_model_example.ipynb in the segment_anything repository.
 # Please see the original notebook for more details and other examples and additional usage.
-import torch
+import warnings
+import os, shutil
+import argparse
 
 from segment_anything import sam_model_registry, SamPredictor
 from segment_anything.utils.onnx import SamOnnxModel
@@ -11,11 +13,10 @@ from segment_anything.utils.onnx import SamOnnxModel
 from onnxruntime.quantization import QuantType
 from onnxruntime.quantization.quantize import quantize_dynamic
 
-import warnings
-import os, shutil
-import argparse
+import cv2
+import torch
 
-def main(checkpoint, model_type, onnx_model_path, orig_im_size, opset_version, quantize = True):
+def save_onnx_model(checkpoint, model_type, onnx_model_path, orig_im_size, opset_version, quantize = True):
     sam = sam_model_registry[model_type](checkpoint=checkpoint)
 
     onnx_model = SamOnnxModel(sam, return_single_mask=True)
@@ -68,22 +69,39 @@ def main(checkpoint, model_type, onnx_model_path, orig_im_size, opset_version, q
         )
         os.remove(temp_model_path)
 
+def main(checkpoint_path, model_type, onnx_models_path, dataset_path, opset_version, quantize):
+    if not os.path.exists(onnx_models_path):
+        os.makedirs(onnx_models_path)
+
+    images_path = os.path.join(dataset_path, "images")
+
+    im_sizes = set()
+    for image_path in os.listdir(images_path):
+        if image_path.endswith(".jpg") or image_path.endswith(".png"):
+            im_path = os.path.join(images_path, image_path)
+            cv2_im = cv2.imread(im_path)
+            im_sizes.add(cv2_im.shape[:2])
+
+    for orig_im_size in im_sizes:
+        onnx_model_path = os.path.join(onnx_models_path, f"sam_onnx.{orig_im_size[0]}_{orig_im_size[1]}.onnx")
+        save_onnx_model(checkpoint_path, model_type, onnx_model_path, orig_im_size, opset_version, quantize)
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint-path", type=str, default="./sam_vit_h_4b8939.pth")
     parser.add_argument("--model_type", type=str, default="default")
-    parser.add_argument("--onnx-model-path", type=str, default="./sam_onnx.onnx")
-    parser.add_argument("--orig-im-size", type=int, nargs="+", default=[1080, 1920])
+    parser.add_argument("--onnx-models-path", type=str, default="./models")
+    parser.add_argument("--dataset-path", type=str, default="./dataset")
     parser.add_argument("--opset-version", type=int, default=15)
     parser.add_argument("--quantize", action="store_true")
     args = parser.parse_args()
 
     checkpoint_path = args.checkpoint_path
     model_type = args.model_type
-    onnx_model_path = args.onnx_model_path
-    orig_im_size = args.orig_im_size
+    onnx_models_path = args.onnx_models_path
+    dataset_path = args.dataset_path
     opset_version = args.opset_version
+    quantize = args.quantize
 
-    # onnx_model_path = os.path.split(onnx_model_path)[0] + f".{orig_im_size[0]}_{orig_im_size[1]}." + os.path.split(onnx_model_path)[1]
-    main(checkpoint_path, model_type, onnx_model_path, orig_im_size, opset_version, args.quantize)
+    main(checkpoint_path, model_type, onnx_models_path, dataset_path, opset_version, quantize)

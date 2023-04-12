@@ -33,16 +33,16 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint-path", type=str, default="./sam_vit_h_4b8939.pth")
     parser.add_argument("--model_type", type=str, default="default")
     parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--dataset-folder", type=str, default="./example_dataset")
+    parser.add_argument("--dataset-path", type=str, default="./example_dataset")
     args = parser.parse_args()
 
     checkpoint_path = args.checkpoint_path
     model_type = args.model_type
     device = args.device
-    dataset_folder = args.dataset_folder
+    dataset_path = args.dataset_path
 
-    images_folder = os.path.join(dataset_folder, "images")
-    embeddings_folder = os.path.join(dataset_folder, "embeddings")
+    images_folder = os.path.join(dataset_path, "images")
+    embeddings_folder = os.path.join(dataset_path, "embeddings")
     if not os.path.exists(embeddings_folder):
         os.makedirs(embeddings_folder)
 

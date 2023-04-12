@@ -1,7 +1,7 @@
 import os, copy
 import numpy as np
 
-from salt.onnx_model import OnnxModel
+from salt.onnx_model import OnnxModels
 from salt.dataset_explorer import DatasetExplorer
 from salt.display_utils import DisplayUtils
 
@@ -33,11 +33,9 @@ class CurrentCapturedInputs:
 
 
 class Editor:
-    def __init__(self, onnx_model_path, dataset_path, categories=None, coco_json_path=None):
+    def __init__(self, onnx_models_path, dataset_path, categories=None, coco_json_path=None):
         self.dataset_path = dataset_path
         self.coco_json_path = coco_json_path
-        self.onnx_model_path = onnx_model_path
-        self.onnx_helper = OnnxModel(self.onnx_model_path)
         if categories is None and not os.path.exists(coco_json_path):
             raise ValueError("categories must be provided if coco_json_path is None")
         if self.coco_json_path is None:
@@ -56,6 +54,10 @@ class Editor:
             self.image_embedding,
         ) = self.dataset_explorer.get_image_data(self.image_id)
         self.display = self.image_bgr.copy()
+
+        self.onnx_helper = OnnxModels(onnx_models_path)
+        self.onnx_helper.set_image_resolution(self.image.shape[1], self.image.shape[0])
+
         self.du = DisplayUtils()
         self.reset()
 
@@ -119,6 +121,7 @@ class Editor:
             self.image_embedding,
         ) = self.dataset_explorer.get_image_data(self.image_id)
         self.display = self.image_bgr.copy()
+        self.onnx_helper.set_image_resolution(self.image.shape[1], self.image.shape[0])
         self.reset()
 
     def prev_image(self):
@@ -131,6 +134,7 @@ class Editor:
             self.image_embedding,
         ) = self.dataset_explorer.get_image_data(self.image_id)
         self.display = self.image_bgr.copy()
+        self.onnx_helper.set_image_resolution(self.image.shape[1], self.image.shape[0])
         self.reset()
 
     def next_category(self):

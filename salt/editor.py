@@ -85,23 +85,34 @@ class Editor:
         )
         self.display = self.du.draw_annotations(self.display, anns, colors)
 
-    def reset(self, hard=True):
-        self.curr_inputs.reset_inputs()
+
+    def __draw(self):
         self.display = self.image_bgr.copy()
+        if self.curr_inputs.curr_mask is not None:
+            self.display = self.du.draw_points(
+                self.display, self.curr_inputs.input_point, self.curr_inputs.input_label)
+            self.display = self.du.overlay_mask_on_image(self.display, self.curr_inputs.curr_mask)
+
         if self.show_other_anns:
             self.draw_known_annotations()
 
+    def reset(self, hard=True):
+        self.curr_inputs.reset_inputs()
+        self.__draw()
+    
     def toggle(self):
         self.show_other_anns = not self.show_other_anns
-        self.reset()
-    
+        self.__draw()
+                
     def step_up_transparency(self):
+        self.display = self.image_bgr.copy()
         self.du.increase_transparency()
-        self.reset()
+        self.__draw()
 
     def step_down_transparency(self):
+        self.display = self.image_bgr.copy()
         self.du.decrease_transparency()
-        self.reset()
+        self.__draw()
 
     def save_ann(self):
         self.dataset_explorer.add_annotation(

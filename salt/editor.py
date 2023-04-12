@@ -70,14 +70,9 @@ class Editor:
             self.curr_inputs.input_label,
             low_res_logits=self.curr_inputs.low_res_logits,
         )
-        self.display = self.image_bgr.copy()
-        self.draw_known_annotations()
-        self.display = self.du.draw_points(
-            self.display, self.curr_inputs.input_point, self.curr_inputs.input_label
-        )
-        self.display = self.du.overlay_mask_on_image(self.display, masks[0, 0, :, :])
         self.curr_inputs.set_mask(masks[0, 0, :, :])
         self.curr_inputs.set_low_res_logits(low_res_logits)
+        self.__draw()
 
     def draw_known_annotations(self):
         anns, colors = self.dataset_explorer.get_annotations(

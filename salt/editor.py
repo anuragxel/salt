@@ -55,8 +55,7 @@ class Editor:
         ) = self.dataset_explorer.get_image_data(self.image_id)
         self.display = self.image_bgr.copy()
 
-        self.onnx_helper = OnnxModels(onnx_models_path)
-        self.onnx_helper.set_image_resolution(self.image.shape[1], self.image.shape[0])
+        self.onnx_helper = OnnxModels(onnx_models_path, width=self.image.shape[1], height=self.image.shape[0])
 
         self.du = DisplayUtils()
         self.reset()

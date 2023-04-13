@@ -54,26 +54,11 @@ class Editor:
             self.image_embedding,
         ) = self.dataset_explorer.get_image_data(self.image_id)
         self.display = self.image_bgr.copy()
-
-        self.onnx_helper = OnnxModels(onnx_models_path, width=self.image.shape[1], height=self.image.shape[0])
-
+        self.onnx_helper = OnnxModels(onnx_models_path, image_width=self.image.shape[1], image_height=self.image.shape[0])
         self.du = DisplayUtils()
         self.reset()
 
-    def add_click(self, new_pt, new_label):
-        self.curr_inputs.add_input_click(new_pt, new_label)
-        masks, low_res_logits = self.onnx_helper.call(
-            self.image,
-            self.image_embedding,
-            self.curr_inputs.input_point,
-            self.curr_inputs.input_label,
-            low_res_logits=self.curr_inputs.low_res_logits,
-        )
-        self.curr_inputs.set_mask(masks[0, 0, :, :])
-        self.curr_inputs.set_low_res_logits(low_res_logits)
-        self.__draw()
-
-    def draw_known_annotations(self):
+    def __draw_known_annotations(self):
         anns, colors = self.dataset_explorer.get_annotations(
             self.image_id, return_colors=True
         )
@@ -88,7 +73,20 @@ class Editor:
             self.display = self.du.overlay_mask_on_image(self.display, self.curr_inputs.curr_mask)
 
         if self.show_other_anns:
-            self.draw_known_annotations()
+            self.__draw_known_annotations()
+
+    def add_click(self, new_pt, new_label):
+        self.curr_inputs.add_input_click(new_pt, new_label)
+        masks, low_res_logits = self.onnx_helper.call(
+            self.image,
+            self.image_embedding,
+            self.curr_inputs.input_point,
+            self.curr_inputs.input_label,
+            low_res_logits=self.curr_inputs.low_res_logits,
+        )
+        self.curr_inputs.set_mask(masks[0, 0, :, :])
+        self.curr_inputs.set_low_res_logits(low_res_logits)
+        self.__draw()
 
     def reset(self, hard=True):
         self.curr_inputs.reset_inputs()

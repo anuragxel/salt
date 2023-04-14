@@ -1,5 +1,12 @@
 import cv2
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QGraphicsView, QGraphicsScene
+from PyQt5.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QGraphicsView,
+    QGraphicsScene,
+    QApplication,
+)
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QWheelEvent, QMouseEvent
 from PyQt5.QtCore import Qt, QRectF
 from PyQt5.QtWidgets import (
@@ -47,17 +54,17 @@ class CustomGraphicsView(QGraphicsView):
             self.setSceneRect(QRectF(pixmap.rect()))
 
     def wheelEvent(self, event: QWheelEvent):
-        zoom_in_factor = 1.25
-        zoom_out_factor = 1 / zoom_in_factor
-        old_pos = self.mapToScene(event.pos())
-        if event.angleDelta().y() > 0:
-            zoom_factor = zoom_in_factor
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ControlModifier:
+            adj = (event.angleDelta().y() / 120) * 0.1
+            self.scale(1 + adj, 1 + adj)
         else:
-            zoom_factor = zoom_out_factor
-        self.scale(zoom_factor, zoom_factor)
-        new_pos = self.mapToScene(event.pos())
-        delta = new_pos - old_pos
-        self.translate(delta.x(), delta.y())
+            delta_y = event.angleDelta().y()
+            delta_x = event.angleDelta().x()
+            x = self.horizontalScrollBar().value()
+            self.horizontalScrollBar().setValue(x - delta_x)
+            y = self.verticalScrollBar().value()
+            self.verticalScrollBar().setValue(y - delta_y)
 
     def imshow(self, img):
         height, width, channel = img.shape

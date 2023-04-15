@@ -6,6 +6,9 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QGraphicsScene,
     QApplication,
+    QListWidget,
+    QListWidgetItem,
+    QAbstractItemView,
 )
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QWheelEvent, QMouseEvent
 from PyQt5.QtCore import Qt, QRectF
@@ -17,6 +20,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QRadioButton,
 )
+
+selected_annotations = []
 
 
 class CustomGraphicsView(QGraphicsView):
@@ -75,21 +80,25 @@ class CustomGraphicsView(QGraphicsView):
         self.set_image(q_img)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        pos = event.pos()
-        pos_in_item = self.mapToScene(pos) - self.image_item.pos()
-        x, y = pos_in_item.x(), pos_in_item.y()
-        if event.button() == Qt.LeftButton:
-            label = 1
-        elif event.button() == Qt.RightButton:
-            label = 0
-        self.editor.add_click([int(x), int(y)], label)
+        # FUTURE USE OF RIGHT CLICK EVENT IN THIS AREA
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ControlModifier:
+            self.editor.remove_click([int(x), int(y)])
+        else:
+            pos = event.pos()
+            pos_in_item = self.mapToScene(pos) - self.image_item.pos()
+            x, y = pos_in_item.x(), pos_in_item.y()
+            if event.button() == Qt.LeftButton:
+                label = 1
+            elif event.button() == Qt.RightButton:
+                label = 0
+            self.editor.add_click([int(x), int(y)], label, selected_annotations)
         self.imshow(self.editor.display)
 
 
 class ApplicationInterface(QWidget):
     def __init__(self, app, editor, panel_size=(1920, 1080)):
         super(ApplicationInterface, self).__init__()
-
         self.app = app
         self.editor = editor
         self.panel_size = panel_size
@@ -105,7 +114,14 @@ class ApplicationInterface(QWidget):
         self.main_window.addWidget(self.graphics_view)
 
         self.panel = self.get_side_panel()
+        self.panel_annotations = QListWidget()
+        self.panel_annotations.setFixedWidth(200)
+        self.panel_annotations.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.panel_annotations.itemClicked.connect(self.annotation_list_item_clicked)
+        self.get_side_panel_annotations()
         self.main_window.addWidget(self.panel)
+        self.main_window.addWidget(self.panel_annotations)
+
         self.layout.addLayout(self.main_window)
 
         self.setLayout(self.layout)
@@ -113,32 +129,34 @@ class ApplicationInterface(QWidget):
         self.graphics_view.imshow(self.editor.display)
 
     def reset(self):
-        self.editor.reset()
+        self.editor.reset(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
     def add(self):
         self.editor.save_ann()
-        self.editor.reset()
+        self.editor.reset(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
     def next_image(self):
         self.editor.next_image()
+        selected_annotations = []
         self.graphics_view.imshow(self.editor.display)
 
     def prev_image(self):
         self.editor.prev_image()
+        selected_annotations = []
         self.graphics_view.imshow(self.editor.display)
 
     def toggle(self):
-        self.editor.toggle()
+        self.editor.toggle(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
     def transparency_up(self):
-        self.editor.step_up_transparency()
+        self.editor.step_up_transparency(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
     def transparency_down(self):
-        self.editor.step_down_transparency()
+        self.editor.step_down_transparency(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
     def save_all(self):
@@ -150,13 +168,17 @@ class ApplicationInterface(QWidget):
         self.layout.addLayout(button_layout)
         buttons = [
             ("Add", lambda: self.add()),
-            ("Reset", lambda: self.reset()),
+            ("Reset", lambda: self.reset(selected_annotations)),
             ("Prev", lambda: self.prev_image()),
             ("Next", lambda: self.next_image()),
             ("Toggle", lambda: self.toggle()),
             ("Transparency Up", lambda: self.transparency_up()),
             ("Transparency Down", lambda: self.transparency_down()),
             ("Save", lambda: self.save_all()),
+            (
+                "Remove Selected Annotations",
+                lambda: self.clear_annotations(selected_annotations),
+            ),
         ]
         for button, lmb in buttons:
             bt = QPushButton(button)
@@ -181,23 +203,55 @@ class ApplicationInterface(QWidget):
             panel_layout.addWidget(label_array[i])
         return panel
 
+    def get_side_panel_annotations(self):
+        anns, colors = self.editor.list_annotations()
+        list_widget = self.panel_annotations
+        list_widget.clear()
+        # anns, colors = self.editor.get_annotations(self.editor.image_id)
+        categories = self.editor.get_categories(get_colors=False)
+        for i, ann in enumerate(anns):
+            listWidgetItem = QListWidgetItem(
+                str(ann["id"]) + " - " + (categories[ann["category_id"]])
+            )
+            list_widget.addItem(listWidgetItem)
+        return list_widget
+
+    def clear_annotations(self, annotation_ids=[]):
+        self.editor.clear_annotations(annotation_ids)
+        self.get_side_panel_annotations()
+        selected_annotations = []
+        self.reset()
+
+    def annotation_list_item_clicked(self, item):
+        if item.isSelected():
+            selected_annotations.append(int(item.text().split(" ")[0]))
+            self.editor.draw_selected_annotations(selected_annotations)
+        else:
+            selected_annotations.remove(int(item.text().split(" ")[0]))
+            self.editor.draw_selected_annotations(selected_annotations)
+        self.graphics_view.imshow(self.editor.display)
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.app.quit()
         if event.key() == Qt.Key_A:
             self.prev_image()
+            self.get_side_panel_annotations()
         if event.key() == Qt.Key_D:
             self.next_image()
+            self.get_side_panel_annotations()
         if event.key() == Qt.Key_K:
             self.transparency_down()
         if event.key() == Qt.Key_L:
             self.transparency_up()
         if event.key() == Qt.Key_N:
             self.add()
+            self.get_side_panel_annotations()
         if event.key() == Qt.Key_R:
             self.reset()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_S:
             self.save_all()
-        # elif event.key() == Qt.Key_Space:
-        #     # Do something if the space bar is pressed
-        #     pass
+        elif event.key() == Qt.Key_Space:
+            # self.clear_annotations(selected_annotations)
+            # Do something if the space bar is pressed
+            # pass

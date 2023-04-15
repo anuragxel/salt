@@ -83,7 +83,8 @@ class CustomGraphicsView(QGraphicsView):
         # FUTURE USE OF RIGHT CLICK EVENT IN THIS AREA
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ControlModifier:
-            self.editor.remove_click([int(x), int(y)])
+            print("Control/ Command key pressed during a mouse click")
+            # self.editor.remove_click([int(x), int(y)])
         else:
             pos = event.pos()
             pos_in_item = self.mapToScene(pos) - self.image_item.pos()

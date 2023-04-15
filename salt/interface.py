@@ -252,6 +252,7 @@ class ApplicationInterface(QWidget):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_S:
             self.save_all()
         elif event.key() == Qt.Key_Space:
+            print("Space pressed")
             # self.clear_annotations(selected_annotations)
             # Do something if the space bar is pressed
             # pass

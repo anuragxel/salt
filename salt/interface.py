@@ -130,29 +130,35 @@ class ApplicationInterface(QWidget):
         self.graphics_view.imshow(self.editor.display)
 
     def reset(self):
+        global selected_annotations
         self.editor.reset(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
     def add(self):
+        global selected_annotations
         self.editor.save_ann()
         self.editor.reset(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
     def next_image(self):
+        global selected_annotations
         self.editor.next_image()
         selected_annotations = []
         self.graphics_view.imshow(self.editor.display)
 
     def prev_image(self):
+        global selected_annotations
         self.editor.prev_image()
         selected_annotations = []
         self.graphics_view.imshow(self.editor.display)
 
     def toggle(self):
+        global selected_annotations
         self.editor.toggle(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
     def transparency_up(self):
+        global selected_annotations
         self.editor.step_up_transparency(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
 
@@ -169,7 +175,7 @@ class ApplicationInterface(QWidget):
         self.layout.addLayout(button_layout)
         buttons = [
             ("Add", lambda: self.add()),
-            ("Reset", lambda: self.reset(selected_annotations)),
+            ("Reset", lambda: self.reset()),
             ("Prev", lambda: self.prev_image()),
             ("Next", lambda: self.next_image()),
             ("Toggle", lambda: self.toggle()),
@@ -178,7 +184,7 @@ class ApplicationInterface(QWidget):
             ("Save", lambda: self.save_all()),
             (
                 "Remove Selected Annotations",
-                lambda: self.clear_annotations(selected_annotations),
+                lambda: self.delete_annotations(),
             ),
         ]
         for button, lmb in buttons:
@@ -217,13 +223,16 @@ class ApplicationInterface(QWidget):
             list_widget.addItem(listWidgetItem)
         return list_widget
 
-    def clear_annotations(self, annotation_ids=[]):
-        self.editor.clear_annotations(annotation_ids)
+    def delete_annotations(self):
+        global selected_annotations
+        for annotation in selected_annotations:
+            self.editor.delete_annotations(annotation)
         self.get_side_panel_annotations()
         selected_annotations = []
         self.reset()
 
     def annotation_list_item_clicked(self, item):
+        global selected_annotations
         if item.isSelected():
             selected_annotations.append(int(item.text().split(" ")[0]))
             self.editor.draw_selected_annotations(selected_annotations)
@@ -250,6 +259,8 @@ class ApplicationInterface(QWidget):
             self.get_side_panel_annotations()
         if event.key() == Qt.Key_R:
             self.reset()
+        if event.key() == Qt.Key_T:
+            self.toggle()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_S:
             self.save_all()
         elif event.key() == Qt.Key_Space:

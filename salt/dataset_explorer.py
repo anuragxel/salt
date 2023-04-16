@@ -175,17 +175,17 @@ class DatasetExplorer:
             return self.annotations_by_image_id[image_id], colors
         return self.annotations_by_image_id[image_id]
 
-    def clear_annotations(self, image_id, annotation_ids):
-        for annotation_id in annotation_ids:
-            for annotation in self.coco_json["annotations"]:
-                if (
-                    annotation["image_id"] == image_id
-                    and annotation["id"] == annotation_id
-                ):  # and annotation["id"] in annotation_ids:
-                    self.coco_json["annotations"].remove(annotation)
+    def delete_annotations(self, image_id, annotation_id):
+        for annotation in self.coco_json["annotations"]:
+            if (
+                annotation["image_id"] == image_id and annotation["id"] == annotation_id
+            ):  # and annotation["id"] in annotation_ids:
+                self.coco_json["annotations"].remove(annotation)
+                break
         for annotation in self.annotations_by_image_id[image_id]:
-            if annotation["id"] in annotation_ids:
+            if annotation["id"] == annotation_id:
                 self.annotations_by_image_id[image_id].remove(annotation)
+                break
 
     def add_annotation(self, image_id, category_id, mask, poly=True):
         if mask is None:

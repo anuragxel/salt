@@ -72,8 +72,8 @@ class Editor:
         )
         return anns, colors
 
-    def clear_annotations(self, annotation_ids):
-        self.dataset_explorer.clear_annotations(self.image_id, annotation_ids)
+    def delete_annotations(self, annotation_id):
+        self.dataset_explorer.delete_annotations(self.image_id, annotation_id)
 
     def __draw_known_annotations(self, selected_annotations=[]):
         anns, colors = self.dataset_explorer.get_annotations(

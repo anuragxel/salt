@@ -4,12 +4,16 @@ import onnxruntime
 
 from salt.utils import apply_coords
 
+
 def get_model_path_from_resolution(onnx_models_path, width, height):
     onnx_model_path = os.path.join(onnx_models_path, f"sam_onnx.{height}_{width}.onnx")
     return onnx_model_path
 
+
 class OnnxModels:
-    def __init__(self, onnx_models_path, threshold=0.5, image_width=1920, image_height=1080):
+    def __init__(
+        self, onnx_models_path, threshold=0.5, image_width=1920, image_height=1080
+    ):
         self.onnx_models_path = onnx_models_path
         print(self.onnx_models_path)
         self.threshold = threshold

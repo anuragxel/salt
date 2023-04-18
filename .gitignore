@@ -133,3 +133,5 @@ dmypy.json
 
 # Dataset
 dataset/
+models/
+flyer_pages/

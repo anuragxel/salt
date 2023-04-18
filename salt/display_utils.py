@@ -2,18 +2,19 @@ import cv2
 import numpy as np
 from pycocotools import mask as coco_mask
 
+
 class DisplayUtils:
     def __init__(self):
-        self.transparency = 0.65
-        self.box_width = 1
+        self.transparency = 0
+        self.box_width = 2
 
     def increase_transparency(self):
         self.transparency = min(1.0, self.transparency + 0.05)
-    
+
     def decrease_transparency(self):
         self.transparency = max(0.0, self.transparency - 0.05)
 
-    def overlay_mask_on_image(self, image, mask, color=(0, 0, 255)):
+    def overlay_mask_on_image(self, image, mask, color=(255, 0, 0)):
         gray_mask = mask.astype(np.uint8) * 255
         gray_mask = cv2.merge([gray_mask, gray_mask, gray_mask])
         color_mask = cv2.bitwise_and(gray_mask, color)
@@ -39,7 +40,19 @@ class DisplayUtils:
     def draw_box_on_image(self, image, ann, color):
         x, y, w, h = ann["bbox"]
         x, y, w, h = int(x), int(y), int(w), int(h)
-        image = cv2.rectangle(image, (x, y), (x + w, y + h), color, self.box_width)
+        if color == (0, 0, 0):
+            image = cv2.rectangle(image, (x, y), (x + w, y + h), color, -1)
+        else:
+            image = cv2.rectangle(image, (x, y), (x + w, y + h), color, self.box_width)
+        image = cv2.putText(
+            image,
+            "id: " + str(ann["id"]),
+            (x, y - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.9,
+            (0, 0, 0),
+            4,
+        )
         return image
 
     def draw_annotations(self, image, annotations, colors):

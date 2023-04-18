@@ -101,7 +101,9 @@ class DatasetExplorer:
         self.dataset_folder = dataset_folder
         self.image_names = os.listdir(os.path.join(self.dataset_folder, "images"))
         self.image_names = [
-            os.path.split(name)[1] for name in self.image_names if name.endswith(".jpg") or name.endswith(".png")
+            os.path.split(name)[1]
+            for name in self.image_names
+            if name.endswith(".jpg") or name.endswith(".png")
         ]
         self.coco_json_path = coco_json_path
         if not os.path.exists(coco_json_path):
@@ -109,7 +111,9 @@ class DatasetExplorer:
         with open(coco_json_path, "r") as f:
             self.coco_json = json.load(f)
 
-        self.categories = [category["name"] for category in self.coco_json["categories"]]
+        self.categories = [
+            category["name"] for category in self.coco_json["categories"]
+        ]
         self.annotations_by_image_id = {}
         for annotation in self.coco_json["annotations"]:
             image_id = annotation["image_id"]
@@ -117,7 +121,13 @@ class DatasetExplorer:
                 self.annotations_by_image_id[image_id] = []
             self.annotations_by_image_id[image_id].append(annotation)
 
-        self.global_annotation_id = len(self.coco_json["annotations"])
+        # self.global_annotation_id = len(self.coco_json["annotations"])
+        try:
+            self.global_annotation_id = (
+                max(self.coco_json["annotations"], key=lambda x: x["id"])["id"] + 1
+            )
+        except:
+            self.global_annotation_id = 0
         self.category_colors = distinctipy.get_colors(len(self.categories))
         self.category_colors = [
             tuple([int(255 * c) for c in color]) for color in self.category_colors
@@ -133,7 +143,7 @@ class DatasetExplorer:
 
     def get_colors(self, category_id):
         return self.category_colors[category_id]
-    
+
     def get_categories(self, get_colors=False):
         if get_colors:
             return self.categories, self.category_colors
@@ -170,6 +180,18 @@ class DatasetExplorer:
         if return_colors:
             return self.annotations_by_image_id[image_id], colors
         return self.annotations_by_image_id[image_id]
+
+    def delete_annotations(self, image_id, annotation_id):
+        for annotation in self.coco_json["annotations"]:
+            if (
+                annotation["image_id"] == image_id and annotation["id"] == annotation_id
+            ):  # and annotation["id"] in annotation_ids:
+                self.coco_json["annotations"].remove(annotation)
+                break
+        for annotation in self.annotations_by_image_id[image_id]:
+            if annotation["id"] == annotation_id:
+                self.annotations_by_image_id[image_id].remove(annotation)
+                break
 
     def add_annotation(self, image_id, category_id, mask, poly=True):
         if mask is None:

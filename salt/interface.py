@@ -1,5 +1,6 @@
 import cv2
 from PyQt5.QtWidgets import (
+    QScrollArea,
     QWidget,
     QVBoxLayout,
     QLabel,
@@ -208,7 +209,12 @@ class ApplicationInterface(QWidget):
                 "background-color: rgba({},{},{},0.6)".format(*colors[i][::-1])
             )
             panel_layout.addWidget(label_array[i])
-        return panel
+
+        scroll = QScrollArea()
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll.setWidget(panel)
+        scroll.setFixedWidth(200)
+        return scroll
 
     def get_side_panel_annotations(self):
         anns, colors = self.editor.list_annotations()

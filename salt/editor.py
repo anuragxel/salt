@@ -17,9 +17,22 @@ class CurrentCapturedInputs:
         self.input_label = np.array([])
         self.low_res_logits = None
         self.curr_mask = None
+        self.paint_mask = None
+        self.curr_point_mask = None
 
     def set_mask(self, mask):
-        self.curr_mask = mask
+        self.curr_point_mask = mask
+
+    def add_paint_mask(self, point_x, point_y):
+        if self.paint_mask is None:
+            self.paint_mask = np.zeros(self.curr_mask_shape)
+
+        self.paint_mask[point_y - 3:point_y + 3, point_x - 3:point_x + 3] = 1
+
+    def era_paint_mask(self, point_x, point_y):
+        if self.paint_mask is None:
+            self.paint_mask = np.zeros(self.curr_mask_shape)
+        self.paint_mask[point_y - 3:point_y + 3, point_x - 3:point_x + 3] = -1
 
     def add_input_click(self, input_point, input_label):
         if len(self.input_point) == 0:
@@ -31,10 +44,13 @@ class CurrentCapturedInputs:
     def set_low_res_logits(self, low_res_logits):
         self.low_res_logits = low_res_logits
 
+    def set_xy(self, xy):
+        self.curr_mask_shape = xy
+
 
 class Editor:
     def __init__(
-        self, onnx_models_path, dataset_path, categories=None, coco_json_path=None
+            self, onnx_models_path, dataset_path, categories=None, coco_json_path=None
     ):
         self.dataset_path = dataset_path
         self.coco_json_path = coco_json_path
@@ -56,7 +72,9 @@ class Editor:
             self.image,
             self.image_bgr,
             self.image_embedding,
+            self.name,
         ) = self.dataset_explorer.get_image_data(self.image_id)
+        self.curr_inputs.set_xy(self.image.shape[:2])
         self.display = self.image_bgr.copy()
         self.onnx_helper = OnnxModels(
             onnx_models_path,
@@ -75,6 +93,45 @@ class Editor:
     def delete_annotations(self, annotation_id):
         self.dataset_explorer.delete_annotations(self.image_id, annotation_id)
 
+    def __draw(self, selected_annotations=[]):
+        self.display = self.image_bgr.copy()
+        if self.curr_inputs.paint_mask is not None and self.curr_inputs.curr_point_mask is not None:
+            tmp_combination = self.curr_inputs.paint_mask + self.curr_inputs.curr_point_mask
+            self.display = self.du.overlay_mask_on_image(self.display, tmp_combination)
+
+        elif self.curr_inputs.paint_mask is not None:
+            tmp_combination = self.curr_inputs.paint_mask
+            self.display = self.du.overlay_mask_on_image(self.display, tmp_combination)
+
+        elif self.curr_inputs.curr_point_mask is not None:
+            tmp_combination = self.curr_inputs.curr_point_mask
+            self.display = self.du.overlay_mask_on_image(self.display, tmp_combination)
+        # if self.curr_inputs.curr_mask is not None:
+        #     # self.display = self.du.draw_points(
+        #     #     self.display, self.curr_inputs.input_point, self.curr_inputs.input_label)
+        #     self.display = self.du.overlay_mask_on_image(self.display, self.curr_inputs.curr_mask)
+
+        if self.show_other_anns:
+            self.__draw_known_annotations(selected_annotations)
+
+    def online_draw(self):
+        self.display = self.image_bgr.copy()
+        if self.curr_inputs.paint_mask is not None and self.curr_inputs.curr_point_mask is not None:
+            tmp_combination = self.curr_inputs.paint_mask + self.curr_inputs.curr_point_mask
+            self.display = self.du.overlay_mask_on_image(self.display, tmp_combination)
+
+        elif self.curr_inputs.paint_mask is not None:
+            tmp_combination = self.curr_inputs.paint_mask
+            self.display = self.du.overlay_mask_on_image(self.display, tmp_combination)
+
+        elif self.curr_inputs.curr_point_mask is not None:
+            tmp_combination = self.curr_inputs.curr_point_mask
+            self.display = self.du.overlay_mask_on_image(self.display, tmp_combination)
+        # if self.curr_inputs.curr_mask is not None:
+        #     # self.display = self.du.draw_points(
+        #     #     self.display, self.curr_inputs.input_point, self.curr_inputs.input_label)
+        #     self.display = self.du.overlay_mask_on_image(self.display, self.curr_inputs.curr_mask)
+
     def __draw_known_annotations(self, selected_annotations=[]):
         anns, colors = self.dataset_explorer.get_annotations(
             self.image_id, return_colors=True
@@ -86,18 +143,6 @@ class Editor:
         # Use this to list the annotations
         self.display = self.du.draw_annotations(self.display, anns, colors)
 
-    def __draw(self, selected_annotations=[]):
-        self.display = self.image_bgr.copy()
-        if self.curr_inputs.curr_mask is not None:
-            self.display = self.du.draw_points(
-                self.display, self.curr_inputs.input_point, self.curr_inputs.input_label
-            )
-            self.display = self.du.overlay_mask_on_image(
-                self.display, self.curr_inputs.curr_mask
-            )
-        if self.show_other_anns:
-            self.__draw_known_annotations(selected_annotations)
-
     def add_click(self, new_pt, new_label, selected_annotations=[]):
         self.curr_inputs.add_input_click(new_pt, new_label)
         masks, low_res_logits = self.onnx_helper.call(
@@ -106,7 +151,8 @@ class Editor:
             self.curr_inputs.input_point,
             self.curr_inputs.input_label,
             low_res_logits=self.curr_inputs.low_res_logits,
-        )
+        )  # masks only True False
+
         self.curr_inputs.set_mask(masks[0, 0, :, :])
         self.curr_inputs.set_low_res_logits(low_res_logits)
         self.__draw(selected_annotations)
@@ -136,9 +182,28 @@ class Editor:
         self.__draw(selected_annotations)
 
     def save_ann(self):
+        if self.curr_inputs.paint_mask is not None and self.curr_inputs.curr_point_mask is not None:
+            tmp_combination = self.curr_inputs.paint_mask + self.curr_inputs.curr_point_mask
+            tmp_combination[tmp_combination > 0] = True
+            tmp_combination[tmp_combination < 0] = False
+
+        elif self.curr_inputs.paint_mask is not None:
+            tmp_combination = self.curr_inputs.paint_mask
+            tmp_combination[tmp_combination > 0] = True
+            tmp_combination[tmp_combination < 0] = False
+
+        elif self.curr_inputs.curr_point_mask is not None:
+            tmp_combination = self.curr_inputs.curr_point_mask
+
+        else:
+            tmp_combination = None
+
         self.dataset_explorer.add_annotation(
-            self.image_id, self.category_id, self.curr_inputs.curr_mask
+            self.image_id, self.category_id, tmp_combination
         )
+        # self.dataset_explorer.add_annotation(
+        #     self.image_id, self.category_id, self.curr_inputs.curr_point_mask
+        # )
 
     def save(self):
         self.dataset_explorer.save_annotation()
@@ -151,7 +216,21 @@ class Editor:
             self.image,
             self.image_bgr,
             self.image_embedding,
+            self.name,
         ) = self.dataset_explorer.get_image_data(self.image_id)
+        self.display = self.image_bgr.copy()
+        self.onnx_helper.set_image_resolution(self.image.shape[1], self.image.shape[0])
+        self.reset()
+
+    def jump2image(self, image_id):
+        self.image_id = image_id - 1
+        (
+            self.image,
+            self.image_bgr,
+            self.image_embedding,
+            self.name,
+        ) = self.dataset_explorer.get_image_data(self.image_id)
+
         self.display = self.image_bgr.copy()
         self.onnx_helper.set_image_resolution(self.image.shape[1], self.image.shape[0])
         self.reset()
@@ -164,6 +243,7 @@ class Editor:
             self.image,
             self.image_bgr,
             self.image_embedding,
+            self.name,
         ) = self.dataset_explorer.get_image_data(self.image_id)
         self.display = self.image_bgr.copy()
         self.onnx_helper.set_image_resolution(self.image.shape[1], self.image.shape[0])
@@ -189,3 +269,5 @@ class Editor:
     def select_category(self, category_name):
         category_id = self.categories.index(category_name)
         self.category_id = category_id
+
+

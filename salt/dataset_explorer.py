@@ -164,7 +164,7 @@ class DatasetExplorer:
         image_bgr = copy.deepcopy(image)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image_embedding = np.load(embedding_path)
-        return image, image_bgr, image_embedding
+        return image, image_bgr, image_embedding, image_name
 
     def __add_to_our_annotation_dict(self, annotation):
         image_id = annotation["image_id"]

@@ -15,11 +15,14 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 
 ## Usage
 
+### On the pre-processing machine
 1. Setup your dataset in the following format `<dataset_name>/images/*` and create empty folder `<dataset_name>/embeddings`.
     - Annotations will be saved in `<dataset_name>/annotations.json` by default.
 2. Copy the `helpers` scripts to the base folder of your `segment-anything` folder.
     - Call `extract_embeddings.py` to extract embeddings for your images. For example ` python3 extract_embeddings.py --dataset-path <path_to_dataset>  `
     - Call `generate_onnx.py` generate `*.onnx` files in models. For example ` python3 generate_onnx.py --dataset-path <path_to_dataset>  --onnx-models-path <path_to_dataset>/models `
+
+### On the labelling machine
 6. Call `segment_anything_annotator.py` with argument `<dataset_name>` and categories `cat1,cat2,cat3..`. For example ` python3 segment_anything_annotator.py --dataset-path <path_to_dataset> --categories cat1,cat2,cat3 `
     - There are a few keybindings that make the annotation process fast.
     - Click on the object using left clicks and right click (to indicate outside object boundary).

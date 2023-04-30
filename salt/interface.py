@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
     QRadioButton,
+    QComboBox,
 )
 
 selected_annotations = []
@@ -49,6 +50,7 @@ class CustomGraphicsView(QGraphicsView):
         self.setScene(self.scene)
 
         self.image_item = None
+        self.flag = False
 
     def set_image(self, q_img):
         pixmap = QPixmap.fromImage(q_img)
@@ -60,17 +62,17 @@ class CustomGraphicsView(QGraphicsView):
             self.setSceneRect(QRectF(pixmap.rect()))
 
     def wheelEvent(self, event: QWheelEvent):
-        modifiers = QApplication.keyboardModifiers()
-        if modifiers == Qt.ControlModifier:
-            adj = (event.angleDelta().y() / 120) * 0.1
-            self.scale(1 + adj, 1 + adj)
+        zoom_in_factor = 1.25
+        zoom_out_factor = 1 / zoom_in_factor
+        old_pos = self.mapToScene(event.pos())
+        if event.angleDelta().y() > 0:
+            zoom_factor = zoom_in_factor
         else:
-            delta_y = event.angleDelta().y()
-            delta_x = event.angleDelta().x()
-            x = self.horizontalScrollBar().value()
-            self.horizontalScrollBar().setValue(x - delta_x)
-            y = self.verticalScrollBar().value()
-            self.verticalScrollBar().setValue(y - delta_y)
+            zoom_factor = zoom_out_factor
+        self.scale(zoom_factor, zoom_factor)
+        new_pos = self.mapToScene(event.pos())
+        delta = new_pos - old_pos
+        self.translate(delta.x(), delta.y())
 
     def imshow(self, img):
         height, width, channel = img.shape
@@ -90,12 +92,39 @@ class CustomGraphicsView(QGraphicsView):
             pos = event.pos()
             pos_in_item = self.mapToScene(pos) - self.image_item.pos()
             x, y = pos_in_item.x(), pos_in_item.y()
-            if event.button() == Qt.LeftButton:
-                label = 1
-            elif event.button() == Qt.RightButton:
-                label = 0
-            self.editor.add_click([int(x), int(y)], label, selected_annotations)
-        self.imshow(self.editor.display)
+            if self.mode == 'point':
+                self.flag = False
+                if event.button() == Qt.LeftButton:
+                    label = 1
+                elif event.button() == Qt.RightButton:
+                    label = 0
+                self.editor.add_click([int(x), int(y)], label)
+            elif self.mode == 'paint':
+                self.flag = True
+                self.editor.curr_inputs.add_paint_mask(int(x), int(y))
+            elif self.mode == 'eraser':
+                self.flag = True
+                self.editor.curr_inputs.era_paint_mask(int(x), int(y))
+            self.editor.online_draw()
+            self.imshow(self.editor.display)
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        pos = event.pos()
+        pos_in_item = self.mapToScene(pos) - self.image_item.pos()
+        x, y = pos_in_item.x(), pos_in_item.y()
+        if self.flag:
+            if self.mode == 'paint':
+                self.editor.curr_inputs.add_paint_mask(int(x), int(y))
+            elif self.mode == 'eraser':
+                self.editor.curr_inputs.era_paint_mask(int(x), int(y))
+            self.editor.online_draw()
+            self.imshow(self.editor.display)
+
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        self.flag = False
+
+    def update_PPE_mode(self, mode):
+        self.mode = mode
 
 
 class ApplicationInterface(QWidget):
@@ -126,9 +155,15 @@ class ApplicationInterface(QWidget):
 
         self.layout.addLayout(self.main_window)
 
+        self.label = QLabel()
+        self.label.resize(200, 100)
+        self.label.setText(f'{self.editor.name}    ...     1/{self.editor.dataset_explorer.get_num_images()}')
+        self.layout.addWidget(self.label)
+
         self.setLayout(self.layout)
 
         self.graphics_view.imshow(self.editor.display)
+        self.execute_mode()
 
     def reset(self):
         global selected_annotations
@@ -144,12 +179,14 @@ class ApplicationInterface(QWidget):
     def next_image(self):
         global selected_annotations
         self.editor.next_image()
+        self._update_label(self.editor.name, self.editor.image_id)
         selected_annotations = []
         self.graphics_view.imshow(self.editor.display)
 
     def prev_image(self):
         global selected_annotations
         self.editor.prev_image()
+        self._update_label(self.editor.name, self.editor.image_id)
         selected_annotations = []
         self.graphics_view.imshow(self.editor.display)
 
@@ -169,6 +206,7 @@ class ApplicationInterface(QWidget):
 
     def save_all(self):
         self.editor.save()
+        self._update_label(self.editor.name, self.editor.image_id)
 
     def get_top_bar(self):
         top_bar = QWidget()
@@ -192,6 +230,18 @@ class ApplicationInterface(QWidget):
             bt = QPushButton(button)
             bt.clicked.connect(lmb)
             button_layout.addWidget(bt)
+
+        self.box = QComboBox(top_bar)
+        self.box.addItems([str(x + 1) for x in range(self.editor.dataset_explorer.get_num_images())])
+        self.box.currentIndexChanged.connect(self.jump2slice)
+
+        self.point_paint_era = QComboBox(top_bar)
+        self.point_paint_era.addItems(['point', 'paint', 'eraser'])
+        self.point_paint_era.setCurrentIndex(0)
+        self.point_paint_era.currentIndexChanged.connect(self.execute_mode)
+
+        button_layout.addWidget(self.box)
+        button_layout.addWidget(self.point_paint_era)
 
         return top_bar
 
@@ -246,6 +296,22 @@ class ApplicationInterface(QWidget):
             selected_annotations.remove(int(item.text().split(" ")[0]))
             self.editor.draw_selected_annotations(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
+
+    def _update_label(self, name, image_id):
+        self.label.setText(f'{name}     ...     {image_id + 1}/{self.editor.dataset_explorer.get_num_images()}')
+        self.layout.addWidget(self.label)
+        self.setLayout(self.layout)
+
+    def jump2slice(self):
+        self.editor.jump2image(int(self.box.currentText()))
+        self._update_label(self.editor.name, self.editor.image_id)
+        self.graphics_view.imshow(self.editor.display)
+
+    def execute_mode(self):
+        # Here is for change point, paint, eraser mode
+        self.graphics_view.update_PPE_mode(self.point_paint_era.currentText())
+        # print(self.point_paint_era.currentText())
+        # pass
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:

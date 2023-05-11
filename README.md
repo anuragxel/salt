@@ -15,6 +15,10 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 
 ## Usage
 
+### (Optional) Create a container with the configured environment
+
+` docker run -it -v /home/marcoambrosio/dataset/:/root/dataset --privileged --env=NVIDIA_VISIBLE_DEVICES=all --env=NVIDIA_DRIVER_CAPABILITIES=all --gpus 1 --name salt andreaostuni/salt:salt-cuda-11.8-base /bin/bash`
+
 ### On the pre-processing machine
 1. Setup your dataset in the following format `<dataset_name>/images/*` and create empty folder `<dataset_name>/embeddings`.
     - Annotations will be saved in `<dataset_name>/annotations.json` by default.

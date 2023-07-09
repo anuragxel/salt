@@ -83,6 +83,7 @@ class CustomGraphicsView(QGraphicsView):
     def mousePressEvent(self, event: QMouseEvent) -> None:
         # FUTURE USE OF RIGHT CLICK EVENT IN THIS AREA
         modifiers = QApplication.keyboardModifiers()
+        label = None
         if modifiers == Qt.ControlModifier:
             print("Control/ Command key pressed during a mouse click")
             # self.editor.remove_click([int(x), int(y)])
@@ -94,7 +95,8 @@ class CustomGraphicsView(QGraphicsView):
                 label = 1
             elif event.button() == Qt.RightButton:
                 label = 0
-            self.editor.add_click([int(x), int(y)], label, selected_annotations)
+            if label is not None:
+                self.editor.add_click([int(x), int(y)], label, selected_annotations)
         self.imshow(self.editor.display)
 
 

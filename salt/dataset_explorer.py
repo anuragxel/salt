@@ -4,7 +4,7 @@ import json
 import shutil
 import itertools
 import numpy as np
-from simplification.cutil import simplify_coords_vwp
+from simplification.cutil import simplify_coords_vwp, simplify_coords
 import os, cv2, copy
 from distinctipy import distinctipy
 
@@ -87,8 +87,9 @@ def parse_mask_to_coco(image_id, anno_id, image_mask, category_id, poly=False):
         )
     if poly == True:
         for contour in contours:
-            sc = simplify_coords_vwp(contour[:,0,:], 2).ravel().tolist()
-            annotation["segmentation"].append(sc)
+            sc = contour.ravel().tolist()
+            if len(sc) > 4:
+                annotation["segmentation"].append(sc)
     return annotation
 
 

@@ -38,6 +38,8 @@ Under active development, apologies for rough edges and bugs. Use at your own ri
 1. [coco-viewer](https://github.com/trsvchn/coco-viewer) to view your annotations.
     - `python cocoviewer.py -i <dataset> -a <dataset>/annotations.json`
 
+1. Call 'coco_to_binary_mask.py' with argument `<dataset_name>`. For example ` python3 coco_to_binary_mask.py --dataset-path <path_to_dataset> `. It will create a new folder 'masks' in the dataset folder with the binary masks. For now only one binary mask is created with all the segmented regions in the same image. (Multiple categories are not supported yet.)
+
 ## Demo
 
 ![How it Works Gif!](https://github.com/anuragxel/salt/raw/main/assets/how-it-works.gif)

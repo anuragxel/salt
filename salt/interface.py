@@ -134,29 +134,34 @@ class ApplicationInterface(QWidget):
         global selected_annotations
         self.editor.reset(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
+        self.get_side_panel_annotations()
 
     def add(self):
         global selected_annotations
         self.editor.save_ann()
         self.editor.reset(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
+        self.get_side_panel_annotations()
 
     def next_image(self):
         global selected_annotations
         self.editor.next_image()
         selected_annotations = []
         self.graphics_view.imshow(self.editor.display)
+        self.get_side_panel_annotations()
 
     def prev_image(self):
         global selected_annotations
         self.editor.prev_image()
         selected_annotations = []
         self.graphics_view.imshow(self.editor.display)
+        self.get_side_panel_annotations()
 
     def toggle(self):
         global selected_annotations
         self.editor.toggle(selected_annotations)
         self.graphics_view.imshow(self.editor.display)
+        self.get_side_panel_annotations()
 
     def transparency_up(self):
         global selected_annotations
@@ -169,6 +174,13 @@ class ApplicationInterface(QWidget):
 
     def save_all(self):
         self.editor.save()
+
+    def change_category(self):
+        global selected_annotations
+        self.editor.change_category(selected_annotations)
+        self.editor.reset(selected_annotations)
+        self.graphics_view.imshow(self.editor.display)
+        self.get_side_panel_annotations()
 
     def get_top_bar(self):
         top_bar = QWidget()
@@ -187,6 +199,7 @@ class ApplicationInterface(QWidget):
                 "Remove Selected Annotations",
                 lambda: self.delete_annotations(),
             ),
+            ("Change Category", lambda: self.change_category()),
         ]
         for button, lmb in buttons:
             bt = QPushButton(button)
@@ -248,25 +261,24 @@ class ApplicationInterface(QWidget):
         self.graphics_view.imshow(self.editor.display)
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Escape:
-            self.app.quit()
+        # if event.key() == Qt.Key_Escape:
+        #     self.app.quit()
         if event.key() == Qt.Key_A:
             self.prev_image()
-            self.get_side_panel_annotations()
         if event.key() == Qt.Key_D:
             self.next_image()
-            self.get_side_panel_annotations()
         if event.key() == Qt.Key_K:
             self.transparency_down()
         if event.key() == Qt.Key_L:
             self.transparency_up()
         if event.key() == Qt.Key_N:
             self.add()
-            self.get_side_panel_annotations()
         if event.key() == Qt.Key_R:
             self.reset()
         if event.key() == Qt.Key_T:
             self.toggle()
+        if event.key() == Qt.Key_C:
+            self.change_category()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_S:
             self.save_all()
         elif event.key() == Qt.Key_Space:
@@ -274,3 +286,5 @@ class ApplicationInterface(QWidget):
             # self.clear_annotations(selected_annotations)
             # Do something if the space bar is pressed
             # pass
+
+    

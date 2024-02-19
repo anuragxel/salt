@@ -203,3 +203,8 @@ class DatasetExplorer:
     def save_annotation(self):
         with open(self.coco_json_path, "w") as f:
             json.dump(self.coco_json, f)
+
+    def update_annotation(self, image_id, category_id, selected_annotations, mask):
+        for annotation in selected_annotations:
+            self.coco_json["annotations"][annotation]["category_id"] = category_id
+

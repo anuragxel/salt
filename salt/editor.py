@@ -143,6 +143,12 @@ class Editor:
     def save(self):
         self.dataset_explorer.save_annotation()
 
+    def change_category(self, selected_annotations=[]):
+        self.dataset_explorer.update_annotation(
+            self.image_id, self.category_id, selected_annotations, self.curr_inputs.curr_mask
+        )
+        self.__draw(selected_annotations)
+
     def next_image(self):
         if self.image_id == self.dataset_explorer.get_num_images() - 1:
             return

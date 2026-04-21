@@ -33,9 +33,7 @@ class CurrentCapturedInputs:
 
 
 class Editor:
-    def __init__(
-        self, onnx_models_path, dataset_path, categories=None, coco_json_path=None
-    ):
+    def __init__(self, onnx_models_path, dataset_path, categories=None, coco_json_path=None):
         self.dataset_path = dataset_path
         self.coco_json_path = coco_json_path
         if categories is None and not os.path.exists(coco_json_path):
@@ -46,10 +44,8 @@ class Editor:
             self.dataset_path, categories=categories, coco_json_path=self.coco_json_path
         )
         self.curr_inputs = CurrentCapturedInputs()
-        self.categories, self.category_colors = self.dataset_explorer.get_categories(
-            get_colors=True
-        )
-        self.image_id = 0
+        self.categories, self.category_colors = self.dataset_explorer.get_categories(get_colors=True)
+        self.image_id = min(self.dataset_explorer.getImgIds(), default=0)
         self.category_id = 0
         self.show_other_anns = True
         (
@@ -67,18 +63,14 @@ class Editor:
         self.reset()
 
     def list_annotations(self):
-        anns, colors = self.dataset_explorer.get_annotations(
-            self.image_id, return_colors=True
-        )
+        anns, colors = self.dataset_explorer.get_annotations(self.image_id, return_colors=True)
         return anns, colors
 
     def delete_annotations(self, annotation_id):
-        self.dataset_explorer.delete_annotations(self.image_id, annotation_id)
+        self.dataset_explorer.delete_annotations(annotation_id)
 
     def __draw_known_annotations(self, selected_annotations=[]):
-        anns, colors = self.dataset_explorer.get_annotations(
-            self.image_id, return_colors=True
-        )
+        anns, colors = self.dataset_explorer.get_annotations(self.image_id, return_colors=True)
         for i, (ann, color) in enumerate(zip(anns, colors)):
             for selected_ann in selected_annotations:
                 if ann["id"] == selected_ann:
@@ -89,14 +81,30 @@ class Editor:
     def __draw(self, selected_annotations=[]):
         self.display = self.image_bgr.copy()
         if self.curr_inputs.curr_mask is not None:
-            self.display = self.du.draw_points(
-                self.display, self.curr_inputs.input_point, self.curr_inputs.input_label
-            )
-            self.display = self.du.overlay_mask_on_image(
-                self.display, self.curr_inputs.curr_mask
-            )
+            self.display = self.du.draw_points(self.display, self.curr_inputs.input_point, self.curr_inputs.input_label)
+            self.display = self.du.overlay_mask_on_image(self.display, self.curr_inputs.curr_mask)
         if self.show_other_anns:
             self.__draw_known_annotations(selected_annotations)
+
+    def draw_selected_annotations(self, selected_annotations=[]):
+        self.__draw(selected_annotations)
+
+    def draw_next_image_with_annotations(self):
+        """
+        Returns the next image with annotations drawn on it.
+        If the current image is the last one, it returns a blank image.
+        """
+
+        if self.image_id == self.dataset_explorer.get_num_images() - 1:
+            display = np.zeros_like(self.image_bgr)
+            return display
+
+        image_id = self.image_id + 1
+        (image, image_bgr, image_embedding) = self.dataset_explorer.get_image_data(image_id)
+        display = image_bgr.copy()
+        anns, colors = self.dataset_explorer.get_annotations(image_id, return_colors=True)
+        display = self.du.draw_annotations(display, anns, colors)
+        return display
 
     def add_click(self, new_pt, new_label, selected_annotations=[]):
         self.curr_inputs.add_input_click(new_pt, new_label)
@@ -132,16 +140,32 @@ class Editor:
         self.du.decrease_transparency()
         self.__draw(selected_annotations)
 
-    def draw_selected_annotations(self, selected_annotations=[]):
-        self.__draw(selected_annotations)
-
     def save_ann(self):
-        self.dataset_explorer.add_annotation(
-            self.image_id, self.category_id, self.curr_inputs.curr_mask
-        )
+        self.dataset_explorer.add_annotation(self.image_id, self.category_id, self.curr_inputs.curr_mask)
 
     def save(self):
         self.dataset_explorer.save_annotation()
+
+    def change_annotation_category(self, selected_annotations=[]):
+        self.dataset_explorer.update_annotation_category(self.category_id, selected_annotations)
+        self.__draw(selected_annotations)
+
+    def change_annotation_tracker_id(self, selected_annotations=[], new_id=None):
+        self.dataset_explorer.update_annotation_tracker_id(selected_annotations, new_id)
+        self.__draw(selected_annotations)
+
+    def go_to_image(self, image_id):
+        if image_id < 0 or image_id >= self.dataset_explorer.get_num_images():
+            return
+        self.image_id = image_id
+        (
+            self.image,
+            self.image_bgr,
+            self.image_embedding,
+        ) = self.dataset_explorer.get_image_data(self.image_id)
+        self.display = self.image_bgr.copy()
+        self.onnx_helper.set_image_resolution(self.image.shape[1], self.image.shape[0])
+        self.reset()
 
     def next_image(self):
         if self.image_id == self.dataset_explorer.get_num_images() - 1:

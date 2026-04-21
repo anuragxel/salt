@@ -10,9 +10,10 @@ from salt.interface import ApplicationInterface
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--onnx-models-path", type=str, default="./models")
+    parser.add_argument("--onnx-models-path", type=str, default="./dataset/models")
     parser.add_argument("--dataset-path", type=str, default="./dataset")
     parser.add_argument("--categories", type=str)
+    parser.add_argument("--tracking", action="store_true", default=False)
     args = parser.parse_args()
 
     onnx_models_path = args.onnx_models_path
@@ -31,6 +32,6 @@ if __name__ == "__main__":
     )
 
     app = QApplication(sys.argv)
-    window = ApplicationInterface(app, editor)
+    window = ApplicationInterface(app, editor, tracking_mode=args.tracking)
     window.show()
     sys.exit(app.exec_())
